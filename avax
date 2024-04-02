@@ -1,0 +1,66 @@
+const { Avalanche, BN } = require('avalanche');
+const { AVMAPI } = require('avalanche/dist/apis/avm');
+const { 
+  AVMAPI, 
+  KeyChain, 
+  Tx, 
+  UnsignedTx, 
+  UTXOSet, 
+  UTXO, 
+  InitialStates 
+} = require('avalanche/dist/apis/avm');
+const { UnixNow } = require('avalanche/dist/utils');
+
+// 设置 Avalanche 主网的节点和网络ID
+const avalanche = new Avalanche('https://api.avax.network/ext/bc/C/rpc', 1);
+
+// 设置发送者的私钥和地址
+const privateKey = 'YOUR_PRIVATE_KEY';
+const senderAddress = 'YOUR_SENDER_ADDRESS';
+
+// 设置接收者的地址
+const recipientAddress = 'RECIPIENT_ADDRESS';
+
+// 设置转账金额（以最小单位为单位，通常是 wei 或 satoshi）
+const amountToSend = new BN('1000000000'); // 1 AVAX
+
+async function sendTransaction() {
+    try {
+        // 实例化 AVMAPI
+        const avm = avalanche.XChain();
+        
+        // 构建发送交易的输入
+        const inputs = [];
+
+        // 获取发送者的 UTXO
+        const senderUTXOs = await avm.getUTXOs(senderAddress);
+        
+        // 计算总余额
+        let balance = new BN(0);
+        for (const utxo of senderUTXOs) {
+            balance.iadd(utxo.getOutput().getAmount());
+            inputs.push(utxo);
+            if (balance.gte(amountToSend)) {
+                break;
+            }
+        }
+
+        if (balance.lt(amountToSend)) {
+            throw new Error('Insufficient funds');
+        }
+
+        // 构建交易
+        const unsignedTx = new UnsignedTx(inputs, [recipientAddress], [senderAddress], avalanche.getNetworkID(), UnixNow(), new BN(0), amountToSend);
+        const keyChain = new KeyChain([privateKey]);
+        const signedTx = unsignedTx.sign(avm.getTxCodec(), keyChain);
+
+        // 发送交易
+        const txID = await avm.issueTx(signedTx);
+        console.log('Transaction sent. TxID:', txID);
+    } catch (error) {
+        console.error('Error occurred:', error);
+    }
+}
+
+// 发送交易
+sendTransaction();
