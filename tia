@@ -1,0 +1,35 @@
+const { LCDClient, MsgSend, StdFee, Coins } = require('@terra-money/terra.js');
+
+// 创建 Terra 客户端
+const terra = new LCDClient({
+  URL: 'https://lcd.terra.dev', // LCD 服务节点的 URL
+  chainID: 'columbus-4', // Terra 主网链ID
+});
+
+// 设置发送者的助记词和地址
+const mnemonic = 'YOUR_MNEMONIC';
+const senderAddress = 'SENDER_TIA_ADDRESS';
+
+// 设置接收者地址
+const recipientAddress = 'RECIPIENT_TIA_ADDRESS';
+
+// 设置转账金额
+const amount = '1000000'; // 1 TIA (TIA 的最小单位为 uTIA，即微TIA)
+
+// 构造交易消息
+const sendMsg = new MsgSend(senderAddress, recipientAddress, new Coins([{ denom: 'uTIA', amount: amount }]));
+
+// 构造交易费用
+const fee = new StdFee(100000, new Coins([{ denom: 'uTIA', amount: '5000' }])); // 假设费用为 5000 uTIA
+
+// 使用助记词创建并签名交易
+const signedTx = await terra.wallet(mnemonic).createAndSignTx({
+  msgs: [sendMsg],
+  memo: 'TIA transfer', // 可选的交易备注
+  fee: fee,
+});
+
+// 广播交易
+const txResult = await terra.tx.broadcast(signedTx);
+
+console.log('Transaction hash:', txResult.txhash);
