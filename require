@@ -1,0 +1,11 @@
+const Web3 = require('web3');
+
+// 连接到 Binance Smart Chain 的公共节点
+const web3 = new Web3('https://bsc-dataseed.binance.org/');
+
+// 检查是否连接成功
+if (web3.isConnected()) {
+    console.log("成功连接到 Binance Smart Chain");
+} else {
+    console.log("无法连接到 Binance Smart Chain");
+}
