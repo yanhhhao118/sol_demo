@@ -1,0 +1,18 @@
+sender_address = "0xYourSenderAddress"
+recipient_address = "0xRecipientAddress"
+private_key = "YOUR_PRIVATE_KEY"  # 发送者的私钥
+amount_wei = web3.utils.toWei('0.1', 'ether')  # 发送 0.1 AVAX
+
+transaction = {
+    'to': recipient_address,
+    'value': amount_wei,
+    'gas': 21000,  # 默认 gas 限额
+    'gasPrice': web3.toWei('30', 'gwei'),  # 设定 gas 价格
+    'nonce': web3.eth.getTransactionCount(sender_address),
+}
+
+# 签名并发送交易
+signed_tx = web3.eth.accounts.signTransaction(transaction, private_key)
+tx_hash = web3.eth.sendRawTransaction(signed_tx.rawTransaction)
+
+print("交易已发送，交易哈希:", tx_hash.hex())
